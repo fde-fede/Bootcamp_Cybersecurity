@@ -3,6 +3,5 @@ kata = {
     'Ruby': 'Yukihiro Matsumoto',
     'PHP': 'Rasmus Lerdorf',
 }
-print("Python was created by", kata['Python'])
-print("Ruby was created by", kata['Ruby'])
-print("PHP was created by", kata['PHP'])
+for language, creator in kata.items():
+    print(f"{language} was created by {creator}")

@@ -32,5 +32,7 @@ def text_analyzer(argumentos=''):
 if __name__ == '__main__':
     if len(sys.argv) > 2:
         print("Error: too many arguments. Usage: python3 count.py 'text'")
+    elif len(sys.argv) < 2:
+        text_analyzer('')
     else:
         text_analyzer(sys.argv[1])

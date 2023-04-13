@@ -79,7 +79,7 @@ while True:
 		print('\n')
 	elif option == '3':
 		print('\n')
-		print_details(input("Please enter a recipe name to get irs details:\n "))
+		print_details(input("Please enter a recipe name to get its details:\n "))
 		print('\n')
 	elif option == '4':
 		for item in cookbook:
@@ -90,5 +90,5 @@ while True:
 		print("Cookbook closed. Goodbye !")
 		break
 	else:
-		print("Sorry, this oprtion dows not exist.")
+		print("Sorry, this option does not exist.")
 		print_options()

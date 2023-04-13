@@ -3,7 +3,7 @@ import random
 print("This is an interactive guessing game!")
 print("You have to enter a number between 1 and 99 to find out the secret number.")
 print("Type 'exit' to end the game.")
-print("Good luck!")
+print("Good luck!\n")
 secret_number = random.randint(1, 99)
 count = 1
 

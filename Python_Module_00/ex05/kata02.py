@@ -1,5 +1,5 @@
+import datetime
 kata = (2019, 9, 25, 3, 30)
-date = '0' + str(kata[1]) + '/' + str(kata[2]) + '/' + str(kata[0])
-time = '0' + str(kata[3]) + ':' + str(kata[4])
-print(date, time)
-
+kata_date = datetime.datetime(*kata)
+kata_date = kata_date.strftime("%m/%d/%Y %H:%M")
+print(kata_date)

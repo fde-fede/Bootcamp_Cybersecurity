@@ -23,10 +23,10 @@ def ft_progress(lst):
 		yield 1
 
 if __name__ == "__main__":
-	lst = range(1000)
+	lst = range(0, -100, -1)
 	ret = 0
 	for elem in ft_progress(lst):
-		ret += (elem + 3) % 5
+		ret += elem
 		time.sleep(0.005)
 	print()
 	print(ret)

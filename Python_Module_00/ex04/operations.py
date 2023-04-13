@@ -3,11 +3,14 @@ import sys
 if len(sys.argv) > 3:
     print("AssertionError: too many arguments")
     exit()
-if len(sys.argv) < 2:
+if len(sys.argv) <= 2:
     print("Usage: python operations.py <number1> <number2>")
     exit()
 for item in sys.argv[1:]:
-    if not item.isdigit():
+    try:
+        A = int(sys.argv[1])
+        B = int(sys.argv[2])
+    except TypeError:
         print("AssertionError: only integers")
         exit()
 A = int(sys.argv[1])

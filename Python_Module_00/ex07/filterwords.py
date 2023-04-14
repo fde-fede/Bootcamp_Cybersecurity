@@ -14,5 +14,5 @@ else:
     
     t = sys.argv[1].translate(str.maketrans('', '', string.punctuation))
     t = t.split(' ')
-    s = [item for item in t if len(item) >= size]
+    s = [item for item in t if len(item) > size]
     print(s)

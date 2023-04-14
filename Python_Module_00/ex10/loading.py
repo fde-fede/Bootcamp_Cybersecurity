@@ -20,13 +20,14 @@ def ft_progress(lst):
 									 percent_complete, i+1, length, elapsed_time))
 		sys.stdout.flush()
 		time.sleep(0.005)
-		yield 1
+		yield item
 
 if __name__ == "__main__":
-	lst = range(0, -100, -1)
+	lst = range(3333)
 	ret = 0
 	for elem in ft_progress(lst):
 		ret += elem
 		time.sleep(0.005)
 	print()
+	print("...")
 	print(ret)

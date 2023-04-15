@@ -1,0 +1,1 @@
+def ft_map(function_to_apply, iterable):

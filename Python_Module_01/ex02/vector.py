@@ -1,7 +1,9 @@
+import sys
+sys.tracebacklimit = 0
+
 def is_float_list(lst):
     if not isinstance(lst, list) or len(lst) == 0:
-        print("The vector values are not a list type")
-        return False
+        raise TypeError("The vector values are not a list type")
     for item in lst:
         if not isinstance(item, int) and not isinstance(item, float):
             return False
@@ -9,8 +11,7 @@ def is_float_list(lst):
 
 def is_list_list(lst):
     if not isinstance(lst, list) or len(lst) == 0:
-        print("The list values are not a list type")
-        return False
+        raise TypeError("The list values are not a list type")
     for item in lst:
         if not is_float_list(item):
             print("The list values are not a list type")
@@ -30,8 +31,8 @@ def is_range(tpl):
     if not isinstance(tpl, tuple) or len(tpl) != 2:
         return False
     if not isinstance(tpl[0], int) and isinstance(tpl[1], int) and tpl[0] < tpl[1]:
-        return True
-    return False
+        return False
+    return True
 
 class Vector:
     def __init__(self, values):
@@ -57,12 +58,18 @@ class Vector:
         else:
             raise ValueError("Invalid values for Vector")
 
+    def __str__(self):
+        return 'Vector([' + ', '.join(map(str, self.values)) + '])'
+    
+    def __repr__(self):
+        return '[' + ', '.join(map(str, self.values)) + ']'
+    
     def __add__(self, other):
         new = Vector(self.values)
         if isinstance(other, Vector) and self.shape == other.shape:
             for i in range(self.shape[0]):
                 for j in range(self.shape[1]):
-                    new.values[i][j] += self.values[i][j]
+                    new.values[i][j] += other.values[i][j]
         else:
             raise ValueError("Type is not Vector or shape is not the same")
         return new
@@ -75,7 +82,7 @@ class Vector:
         if isinstance(other, Vector) and self.shape == other.shape:
             for i in range(self.shape[0]):
                 for j in range(self.shape[1]):
-                    new.values[i][j] -= self.values[i][j]
+                    new.values[i][j] -= other.values[i][j]
         else:
             raise ValueError("Type is not Vector or shape is not the same")
         return new
@@ -98,6 +105,10 @@ class Vector:
 
     def __truediv__(self, scale):
         new = Vector(self.values)
+        if scale == 0:
+            raise ValueError("ZeroDivisionError: division by zero")
+        if isinstance(scale, Vector):
+            raise ValueError("NotImplementedError: Division of a scalar by a Vector is not defined here.")
         if isinstance(scale, int) or isinstance(scale, float):
             for i in range(self.shape[0]):
                 for j in range(self.shape[1]):
@@ -107,27 +118,24 @@ class Vector:
         return new
     
     def __rtruediv__(self, scale):
-        return self.__truediv__(scale)
-    
-    def __str__(self):
-        for item in self:
-            s = s + item
-        return s
-    
-    def __repr__(self):
-        for item in self:
-            print(item)
+        print ("Type is not Vector or shape is not the same")
+        #return self.__truediv__(scale)
     
     def dot(self, oper):
-        if self.shape[1] != oper.shape[0]:
+        if self.shape != oper.shape:
             raise ValueError("Dot product is not possible")
-        product = [[0] * oper.shape[1] for i in range(self.shape[0])]
-        print(product)
-        for i in range(self.shape[0]):
-            for j in range(oper.shape[1]):
-                for k in range(self.shape[1]):
-                    product[i][j] += self.values[i][k] * oper.values[k][j]
-        return Vector(product)
+        product = 0
+        if self.shape[0] == 1:
+            for i in range(self.shape[0]):
+                for j in range(oper.shape[0]):
+                    for k in range(self.shape[1]):
+                        product += self.values[i][k] * oper.values[j][k]
+        else:
+            for i in range(self.shape[0]):
+                for j in range(oper.shape[1]):
+                    for k in range(self.shape[1]):
+                        product += self.values[i][k] * oper.values[i][k]
+        return (product)
 
 
     def T(self):

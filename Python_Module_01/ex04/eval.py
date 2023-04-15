@@ -39,6 +39,7 @@ def test_evaluator(coefs, words):
 
 if __name__ == '__main__':
     test_evaluator([1.0, 2.0, 1.0, 4.0, 0.5], ["Le", "Lorem", "Ipsum", "est", "simple"])
+    test_evaluator([0.0, -1.0, 1.0, -12.0, 0.0, 42.42], ["Le", "Lorem", "Ipsum", "n'", "est", "pas", "simple"])
     test_evaluator([1, 2, 3], ["a", "b", "c"])
     test_evaluator([1], ["one", "two"])
     test_evaluator([1, 2, 3], 42.0)

@@ -24,7 +24,7 @@ def doom_printer(obj):
     print("end")
 
 if __name__ == "__main__":
-    obj = what_are_the_vars(7)
+    obj = what_are_the_vars(3, var_0=2)
     doom_printer(obj)
     obj = what_are_the_vars(None, [])
     doom_printer(obj)

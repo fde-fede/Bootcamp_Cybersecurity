@@ -1,3 +1,6 @@
+import sys
+sys.tracebacklimit = 0
+
 def ft_filter(function_to_apply, iterable):
     """Filter the result of function apply to all elements of the iterable.
     Args:
@@ -7,5 +10,8 @@ def ft_filter(function_to_apply, iterable):
         An iterable.
         None if the iterable can not be used by the function.
     """
-    for elem in [i for i in iterable if function_to_apply(i)]:
-        yield elem
+    try:
+        for elem in [i for i in iterable if function_to_apply(i)]:
+            yield elem
+    except TypeError:
+        return None

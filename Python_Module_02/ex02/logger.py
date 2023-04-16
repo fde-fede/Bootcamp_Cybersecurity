@@ -11,7 +11,12 @@ def log(func):
             user = os.getenv('USER', "unknown")
             name = func.__name__.replace('_', ' ').title()
             if xtime > 0.001:
-                file.write(f"({user}) Running")
+                file.write(f"({user}) Running: {name:18} [ exec-time = {xtime:.3f} s]\n")
+            else:
+                file.write(f"({user}) Running: {name:18} [ exec-time = {xtime * 1000:.3f} ms ]\n")
+        return result
+    return wrapper
+
 
 
 class CoffeeMachine():

@@ -1,4 +1,6 @@
 from collections.abc import Iterable
+import sys
+sys.tracebacklimit = 0
 
 def ft_reduce(function_to_apply, iterable):
     """Apply function of two arguments cumulatively.
@@ -13,9 +15,12 @@ def ft_reduce(function_to_apply, iterable):
         raise TypeError("Expected an iterable")
     if not iterable:
         raise TypeError("reduce() of empty sequence with no initial value")
-    for i, elem in enumerate(iterable):
-        if i:
-            reduced = function_to_apply(reduced, elem)
-        else:
-            reduced = elem
-    return reduced
+    try:
+        for i, elem in enumerate(iterable):
+            if i:
+                reduced = function_to_apply(reduced, elem)
+            else:
+                reduced = elem
+        return reduced
+    except TypeError:
+        return None

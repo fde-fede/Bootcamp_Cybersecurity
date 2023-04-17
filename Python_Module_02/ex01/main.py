@@ -38,3 +38,5 @@ if __name__ == "__main__":
     doom_printer(obj)
     obj = what_are_the_vars(42, "Yes", a=10, var_2="world")
     doom_printer(obj)
+    obj = what_are_the_vars(lambda x: x, function=what_are_the_vars)
+    doom_printer(obj)

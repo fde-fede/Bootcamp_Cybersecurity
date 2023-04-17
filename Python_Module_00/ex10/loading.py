@@ -11,7 +11,7 @@ def ft_progress(lst):
 
 		filled_slots = int(percent_complete / 5)
 		empty_slots = 20 - filled_slots
-
+ 
 		progress_bar = "[" + "=" * filled_slots + ">" + " " * empty_slots + "]"
 		eta = (elapsed_time / (percent_complete / 100.00))
 
@@ -23,11 +23,11 @@ def ft_progress(lst):
 		yield item
 
 if __name__ == "__main__":
-	lst = range(3333)
+	lst = range(10)
 	ret = 0
 	for elem in ft_progress(lst):
 		ret += elem
-		time.sleep(0.005)
+		time.sleep(0.5)
 	print()
 	print("...")
 	print(ret)

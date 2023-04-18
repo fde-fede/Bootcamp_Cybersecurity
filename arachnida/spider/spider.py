@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import argparse
 import requests
 import os
+import shutil
 import sys
 from urllib.parse import urlparse, urljoin
 
@@ -9,9 +10,19 @@ def download_images(url, depth, base_path, allowed_extensions):
     count = 0
     parsed_url = urlparse(url)
     base_url = f'{parsed_url.scheme}://{parsed_url.netloc}'
-    r = requests.get(url)
-    soup = BeautifulSoup(r.content, 'html.parser')
-    images = soup.findAll('img')
+    if base_url.startswith("http"):
+        web = 1
+        r = requests.get(url)
+        soup = BeautifulSoup(r.content, 'html.parser')
+    else:
+        try:
+            with open(base_path, 'r') as f:
+                web = 0
+                r = f.read()
+                soup = BeautifulSoup(r, 'html.parser')
+        except ValueError:
+            print(f"{base_path} does not exist")
+    images = soup.find_all('img')
     print(f"Total {len(images)} Image Found!")
     if len(images) != 0:
         for i, image in enumerate(images):
@@ -19,21 +30,29 @@ def download_images(url, depth, base_path, allowed_extensions):
                 image_url = image.get('src')
             except:
                 pass
-            image_url = urljoin(base_url, image_url)
             _, ext = os.path.splitext(image_url)
             if ext.lower() not in allowed_extensions:
                 continue
-            try:
-                r = requests.get(image_url).content
+            if web == 0:
                 try:
-                    r = str(r, 'utf-8')
-                except UnicodeDecodeError:
-                    img_path = os.path.join(base_path, os.path.basename(image_url))
-                    with open(img_path, "wb+") as f:
-                        f.write(r)
+                    with open(base_path, 'a') as f:
+                        response = open(image_url, 'rb')
+                        shutil.copyfileobj(response, f)
+                except:
+                    pass
+            else:
+                image_url = urljoin(base_url, image_url)
+                try:
+                    r = requests.get(image_url).content
+                    try:
+                        r = str(r, 'utf-8')
+                    except UnicodeDecodeError:
+                        print ("A")
+                        with open(f"{base_path}/images{i+1}{ext}", "wb+") as f:
+                            f.write(r)
                     count += 1
-            except:
-                pass
+                except:
+                    pass
         if depth > 0:
             for link in soup.find_all('a'):
                 href = link.get('href')

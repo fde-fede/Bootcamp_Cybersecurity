@@ -1,0 +1,122 @@
+#!/Users/fde-fede/goinfre/miniconda3/envs/42AI-fde-fede/bin/python3
+import hashlib
+import base64
+import os
+import sys
+import re
+import time
+import tkinter as tk
+from PIL import Image, ImageTk
+import qrcode
+from tkinter import messagebox
+import pyotp
+import hmac
+
+def encrypt_key(key):
+    salt = os.urandom(16)
+    key_bytes = key.encode('utf-8')
+    key_hash = hashlib.sha256(salt + key_bytes).digest()
+    return base64.b64encode(salt + key_hash).decode('utf-8')
+
+def decrypt_key(encrypted_key):
+    encrypted_key_bytes = base64.b64decode(encrypted_key.encode('utf-8'))
+    salt = encrypted_key_bytes[:16]
+    key_hash = encrypted_key_bytes[16:]
+    return key_hash, salt
+
+def generate_password(master_key):
+    current_time = int(time.time())
+    time_window = 30
+    time_steps = current_time // time_window
+    counter_bytes = time_steps.to_bytes(8, byteorder='big')
+    master_key_bytes = master_key.encode()
+    print("Clave pyotp:", pyotp.TOTP(base64.b32encode(master_key.encode())).now())
+    hmac_digest = hmac.new(master_key_bytes, counter_bytes, hashlib.sha1).digest()
+    offset = hmac_digest[-1] & 0x0F
+    otp_bytes = hmac_digest[offset:offset+4]
+    otp_int = int.from_bytes(otp_bytes, byteorder='big') & 0x7FFFFFFF
+    otp = str(otp_int % 1000000).zfill(6)
+    return otp
+
+def save_key_to_file(key, file_path):
+    try:
+        with open(file_path, 'w') as file:
+            file.write(key)
+        messagebox.showinfo('Success', f'Key was successfully saved in {file_path}.')
+    except Exception as e:
+        messagebox.showerror('Error', f'Error saving key to file: {e}')
+        sys.exit(1)
+
+def load_key_from_file(file_path):
+    try:
+        with open(file_path, 'r') as file:
+            key = file.read()
+            return key.strip()
+    except FileNotFoundError:
+        messagebox.showerror('Error', f'Error: Key file {file_path} not found.')
+        sys.exit(1)
+    except Exception as e:
+        messagebox.showerror('Error', f'Error loading key from file: {e}')
+        sys.exit(1)
+
+def generate_password_handler():
+    master_key = master_key_entry.get()
+    if len(master_key) < 64 or not re.match("^[0-9a-fA-F]+$", master_key):
+        messagebox.showerror('Error', 'Master key must be 64 char length hexadecimal.')
+    else:
+        encrypted_key = encrypt_key(master_key)
+        save_key_to_file(encrypted_key, 'ft_otp.key')
+
+def generate_otp_handler():
+    master_key = master_key_entry.get()
+    key_file = key_file_entry.get()
+    encrypted_key = load_key_from_file(key_file)
+    password = generate_password(encrypted_key)
+    otp_label.config(text=f'One-Time Password: {password}')
+    generate_qr(master_key)
+
+def generate_otp(master_key):
+    return master_key + 'OTP'
+
+def generate_qr(master_key):
+    #qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=10, border=4)
+    bytes_key = bytes.fromhex(master_key)
+    base32_key = base64.b32encode(bytes_key)
+    img = qrcode.make("otpauth://totp/:?secret="+base32_key.decode()+"&issuer=Issuer")
+    #qr.add_data("otpauth://totp/ft_otp?secret="+base32_key.decode()+"&issuer=Issuer")
+    #qr.make(fit=True)
+    #img = qr.make_image(fill_color="black", back_color="white")
+    #img = img.convert("RGB")
+    img_filename = "otp_qrcode.png"
+    img.save(img_filename)
+    #img_tk = Image.open(img_filename)
+    #img_tk = ImageTk.PhotoImage(img_tk)
+    #qr_label.config(image=img_tk)
+    #qr_label.image = img_tk
+
+root = tk.Tk()
+root.title('ft_otp Generator')
+
+master_key_label = tk.Label(root, text='Master Key:')
+master_key_label.pack()
+master_key_entry = tk.Entry(root, show='*')
+master_key_entry.pack()
+
+generate_button = tk.Button(root, text='Generate Key', command=generate_password_handler)
+generate_button.pack()
+
+key_file_label = tk.Label(root, text='Key File:')
+key_file_label.pack()
+key_file_entry = tk.Entry(root)
+key_file_entry.pack()
+
+generate_otp_button = tk.Button(root, text='Generate OTP', command=generate_otp_handler)
+generate_otp_button.pack()
+
+otp_label = tk.Label(root, text='')
+otp_label.pack()
+
+qr_label = tk.Label(root)
+qr_label.pack()
+
+root.mainloop()

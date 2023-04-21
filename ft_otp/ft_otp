@@ -5,6 +5,7 @@ import base64
 import os
 import sys
 import time
+import re
 
 def encrypt_key(key_file):
     key = open(key_file, 'r').read()
@@ -63,7 +64,7 @@ def main():
         key_file = args.g
         with open(key_file) as f:
             tmp = f.read()
-        if len(tmp) < 64:
+        if len(tmp) < 64 or not re.match("^[0-9a-fA-F]+$", tmp):
             print("./ft_otp: error: key must be 64 hexadecimal characters.")
         else:
             key = encrypt_key(args.g)

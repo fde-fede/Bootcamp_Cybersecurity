@@ -11,18 +11,15 @@ import qrcode
 from tkinter import messagebox
 import pyotp
 import hmac
+import random
+
+sys.tracebacklimit = 0
 
 def encrypt_key(key):
     salt = os.urandom(16)
     key_bytes = key.encode('utf-8')
     key_hash = hashlib.sha256(salt + key_bytes).digest()
     return base64.b64encode(salt + key_hash).decode('utf-8')
-
-def decrypt_key(encrypted_key):
-    encrypted_key_bytes = base64.b64decode(encrypted_key.encode('utf-8'))
-    salt = encrypted_key_bytes[:16]
-    key_hash = encrypted_key_bytes[16:]
-    return key_hash, salt
 
 def generate_password(master_key):
     current_time = int(time.time())
@@ -59,56 +56,106 @@ def load_key_from_file(file_path):
         messagebox.showerror('Error', f'Error loading key from file: {e}')
         sys.exit(1)
 
+def save_password():
+    global password
+    password = paswrd_entry.get()
+    if password == '':
+        messagebox.showerror('Error', 'Error: Password cannot be empty')
+        return
+    else:
+        messagebox.showinfo("Success", "The password has been saved")
+        paswrd.destroy()
+        encrypted = encrypt_key(master_key_entry.get())
+        save_key_to_file(encrypted, 'ft_otp.key')
+        return
+
+def generate_master_key():
+    hexadecimal = ""
+    caracteres_hex = "0123456789abcdef"
+    for i in range(64):
+        hexadecimal += random.choice(caracteres_hex)
+    master_key_entry.insert(0, hexadecimal)
+
 def generate_password_handler():
     master_key = master_key_entry.get()
     if len(master_key) < 64 or not re.match("^[0-9a-fA-F]+$", master_key):
         messagebox.showerror('Error', 'Master key must be 64 char length hexadecimal.')
     else:
-        encrypted_key = encrypt_key(master_key)
-        save_key_to_file(encrypted_key, 'ft_otp.key')
+        global paswrd
+        paswrd = tk.Tk()
+        paswrd.eval('tk::PlaceWindow . center')
+        paswrd.title("Password")
+        paswrd_text = tk.Label(paswrd, text='Please, introduce password for ft_otp.key:')
+        paswrd_text.pack()
+
+        global paswrd_entry
+        paswrd_entry = tk.Entry(paswrd, show='*')
+        paswrd_entry.pack()
+
+        paswrd_button = tk.Button(paswrd, text='Save password', command=save_password)
+        paswrd_button.pack()
 
 def generate_otp_handler():
     master_key = master_key_entry.get()
     key_file = key_file_entry.get()
-    encrypted_key = load_key_from_file(key_file)
-    password = generate_password(encrypted_key)
-    otp_label.config(text=f'One-Time Password: {password}')
-    generate_qr(master_key)
-
-def generate_otp(master_key):
-    return master_key + 'OTP'
+    if master_key != '' and key_file != '':
+        valid = 1
+    else:
+        valid = 0
+    if valid:
+        if os.path.exists('./ft_otp.key'):
+            if password_file_entry.get() == password and key_file_entry.get() == 'ft_otp.key':
+                encrypted_key = load_key_from_file(key_file)
+                contrasena = generate_password(encrypted_key)
+                otp_label.config(text=f'One-Time Password: {contrasena}')
+                generate_qr(master_key)
+            else:
+                messagebox.showerror('Error', 'Error: Password and key file do not match')
+        else:
+            messagebox.showerror('Error', 'Error: Key file does not exist')
+    else:
+        messagebox.showerror('Error', 'Master key or key file cannot be empty')
 
 def generate_qr(master_key):
-    #qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=10, border=4)
+    qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=10, border=4)
     bytes_key = bytes.fromhex(master_key)
-    base32_key = base64.b32encode(bytes_key)
-    img = qrcode.make("otpauth://totp/:?secret="+base32_key.decode()+"&issuer=Issuer")
-    #qr.add_data("otpauth://totp/ft_otp?secret="+base32_key.decode()+"&issuer=Issuer")
-    #qr.make(fit=True)
-    #img = qr.make_image(fill_color="black", back_color="white")
-    #img = img.convert("RGB")
+    base32_key = base64.b32encode(bytes_key).decode('utf-8')
+    qr.add_data("otpauth://totp/ft_totp?secret="+base32_key)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+    img = img.convert("RGB")
     img_filename = "otp_qrcode.png"
     img.save(img_filename)
-    #img_tk = Image.open(img_filename)
-    #img_tk = ImageTk.PhotoImage(img_tk)
-    #qr_label.config(image=img_tk)
-    #qr_label.image = img_tk
+    img_tk = Image.open(img_filename)
+    img_tk = ImageTk.PhotoImage(img_tk)
+    qr_label.config(image=img_tk)
+    qr_label.image = img_tk
 
 root = tk.Tk()
+root.eval('tk::PlaceWindow . center')
 root.title('ft_otp Generator')
 
 master_key_label = tk.Label(root, text='Master Key:')
 master_key_label.pack()
+global master_key_entry
 master_key_entry = tk.Entry(root, show='*')
 master_key_entry.pack()
 
-generate_button = tk.Button(root, text='Generate Key', command=generate_password_handler)
+generate_button = tk.Button(root, text='Generate random key', command=generate_master_key)
+generate_button.pack()
+
+generate_button = tk.Button(root, text='Generate file', command=generate_password_handler)
 generate_button.pack()
 
 key_file_label = tk.Label(root, text='Key File:')
 key_file_label.pack()
 key_file_entry = tk.Entry(root)
 key_file_entry.pack()
+
+password_file_label = tk.Label(root, text='Password')
+password_file_label.pack()
+password_file_entry = tk.Entry(root, show='*')
+password_file_entry.pack()
 
 generate_otp_button = tk.Button(root, text='Generate OTP', command=generate_otp_handler)
 generate_otp_button.pack()

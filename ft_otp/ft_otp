@@ -5,6 +5,8 @@ import base64
 import os
 import sys
 import time
+import hmac
+import pyotp
 import re
 
 def encrypt_key(key_file):
@@ -14,22 +16,19 @@ def encrypt_key(key_file):
     key_hash = hashlib.sha256(salt + key_bytes).digest()
     return base64.b64encode(salt + key_hash).decode('utf-8')
 
-def decrypt_key(encrypted_key):
-    encrypted_key_bytes = base64.b64decode(encrypted_key.encode('utf-8'))
-    salt = encrypted_key_bytes[:16]
-    key_hash = encrypted_key_bytes[16:]
-    return key_hash, salt
-
-def generate_password(encrypted_key):
-    key_hash, salt = decrypt_key(encrypted_key)
-    timestamp = int(time.time())
-    counter = timestamp // 30  # Time-based OTP with time step of 30 seconds
-    counter_bytes = counter.to_bytes(8, byteorder='big')
-    hmac_hash = hashlib.sha256(salt + counter_bytes).digest()
-    offset = hmac_hash[-1] & 0x0F
-    otp_bytes = hmac_hash[offset:offset + 4]
-    otp = int.from_bytes(otp_bytes, byteorder='big') & 0x7FFFFFFF  # Use 31 bits
-    return str(otp % 1000000).zfill(6)
+def generate_password(master_key):
+    current_time = int(time.time())
+    time_window = 30
+    time_steps = current_time // time_window
+    counter_bytes = time_steps.to_bytes(8, byteorder='big')
+    master_key_bytes = master_key.encode()
+    print("Clave pyotp:", pyotp.TOTP(base64.b32encode(master_key.encode())).now())
+    hmac_digest = hmac.new(master_key_bytes, counter_bytes, hashlib.sha1).digest()
+    offset = hmac_digest[-1] & 0x0F
+    otp_bytes = hmac_digest[offset:offset+4]
+    otp_int = int.from_bytes(otp_bytes, byteorder='big') & 0x7FFFFFFF
+    otp = str(otp_int % 1000000).zfill(6)
+    return otp
 
 def save_key_to_file(key, file_path):
     try:

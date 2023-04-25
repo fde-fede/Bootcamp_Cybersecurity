@@ -1,0 +1,7 @@
+{
+    "C_Cpp.errorSquiggles": "disabled",
+    "files.associations": {
+        "bn.h": "c",
+        "rsa.h": "c"
+    }
+}

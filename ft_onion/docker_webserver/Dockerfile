@@ -14,4 +14,7 @@ COPY nginx.conf /etc/nginx/nginx.conf
 RUN useradd -m pepe
 RUN echo "pepe:onion" | chpasswd
 
+RUN useradd -m test
+RUN echo "test:onion1" | chpasswd
+
 ENTRYPOINT service ssh start; nginx; tor

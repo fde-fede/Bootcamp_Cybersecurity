@@ -1,2 +1,8 @@
 PermitRootLogin no
 Port 4242
+AllowUsers pepe
+UsePAM yes
+ChallengeResponseAuthentication yes
+ClientAliveInterval 5
+ClientAliveCountMax 3
+MaxAuthTries 3

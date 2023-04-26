@@ -3,8 +3,7 @@
         {
             "name": "Mac",
             "includePath": [
-                "${workspaceFolder}/**",
-                "/sgoinfre/goinfre/Perso/fde-fede/"
+                "${workspaceFolder}/**"
             ],
             "defines": [],
             "macFrameworkPath": [

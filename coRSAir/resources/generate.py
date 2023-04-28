@@ -82,7 +82,7 @@ os.system("rm -rf key1.conf key2.conf key1.der key2.der csr1.pem csr2.pem")
 # Private keys
 os.system("rm key1.pem key2.pem")
 
-os.system("echo 'pwd42' > passwd.txt")
+os.system("echo '42 Malaga!!' > passwd.txt")
 os.system("openssl x509 -pubkey -noout -in cert1.pem > pubkey.pem")
 os.system("openssl rsautl -encrypt -inkey pubkey.pem -pubin -in passwd.txt -out passwd.enc")
 os.system("echo 'You win!! This is the secret message.' > msg.txt")

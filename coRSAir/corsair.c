@@ -27,6 +27,11 @@ RSA *get_rsa(char *path) {
     cert = PEM_read_bio_X509(bio, NULL, 0, NULL);
     pkey = X509_get_pubkey(cert);
     rsa = EVP_PKEY_get1_RSA(pkey);
+    if (!cert || !pkey || !rsa)
+    {
+        printf("Error while reading certificate and private key.\n");
+        exit(1);
+    }
 
     X509_free(cert);
     EVP_PKEY_free(pkey);
@@ -56,8 +61,8 @@ int main(int argc, char *argv[])
     BIGNUM  *p;             // Prime number common to both certificates
 
     BIGNUM  *total;         // Total number of certificates
-    BIGNUM  *fi1;           // Number of prime factors of 'n1'
-    BIGNUM  *fi2;           // Number of prime factors of 'n2'
+    BIGNUM  *eu1;           // Number of prime factors of 'n1'
+    BIGNUM  *eu2;           // Number of prime factors of 'n2'
 
     BIGNUM  *e;             // Exponent of public key
     BIGNUM  *d;             // Exponent of private key
@@ -65,8 +70,10 @@ int main(int argc, char *argv[])
     int     fd;             // Decrypter of entry file
     int     len;            // Length of entry file
 
-    (void)argc;             // Ignore 'argc' parameter
-
+    if (argc != 4) {
+        printf("Usage: %s <cert1.pem> <cert2.pem> <passwd.enc>\n", argv[0]);
+        return (0);
+    }
     // Initialize variables
     res = malloc(sizeof(unsigned char) * BUFFER);
     sol = malloc(sizeof(unsigned char) * BUFFER);
@@ -81,8 +88,8 @@ int main(int argc, char *argv[])
     p = BN_new();
     d = BN_new();
     total = BN_new();
-    fi1 = BN_new();
-    fi2 = BN_new();
+    eu1 = BN_new();
+    eu2 = BN_new();
     private = RSA_new();
 
     // Operations to get data
@@ -95,9 +102,9 @@ int main(int argc, char *argv[])
     BN_div(q2, NULL, n2, p, ctx);   // Calculates prime factors and store it on q2
 
     BN_dec2bn(&one, "1");               // Initialize 'one' to 1
-    BN_sub(fi1, q1, one);               // Caculates φ Euler function -> 'fi1' = 'q1' - '1' (one)
-    BN_sub(fi2, p, one);                // Caculates φ Euler function -> 'fi2' = 'p' - '1' (one)
-    BN_mul(total, fi1, fi2, ctx);       // Calculates 'total' = 'fi1' * 'fi2'
+    BN_sub(eu1, q1, one);               // Caculates φ Euler function -> 'eu1' = 'q1' - '1' (one)
+    BN_sub(eu2, p, one);                // Caculates φ Euler function -> 'eu2' = 'p' - '1' (one)
+    BN_mul(total, eu1, eu2, ctx);       // Calculates 'total' = 'eu1' * 'eu2'
     BN_mod_inverse(d, e, total, ctx);   // Calculates the inverse modular of e -> 'd' = 'e' ^ (-1) (mod 'total')
 
     // Generate private key
@@ -106,6 +113,15 @@ int main(int argc, char *argv[])
     // Associate prime numbers to each RSA
     RSA_set0_factors(rsa1, p, q1);      //Sets the prime factors p and q1 in rsa1
     RSA_set0_factors(rsa2, p, q2);      //Sets the prime factors p and q2 in rsa2
+
+    // Reads entry file, sees if it's possible to read it and decrypt it's content
+    fd = open(argv[3], O_RDONLY);
+    if (fd < 1)
+    {
+        printf("\nError opening file %s\n", argv[3]);
+        exit(1);
+    }
+    len = read(fd, res, BUFFER);
 
     // Print the certificates data
     printf("\nFirst Certificate:\n");
@@ -116,9 +132,6 @@ int main(int argc, char *argv[])
     RSA_print(bioprint, rsa2, 0);
     RSA_print(bioprint, private, 0);
 
-    // Reads entry file and decrypt it's content
-    fd = open(argv[3], O_RDONLY);
-    len = read(fd, res, BUFFER);
     RSA_private_decrypt(len, res, sol, private, RSA_PKCS1_PADDING);     // Function that decrypts the message
 
     // Print the file content
@@ -143,8 +156,8 @@ int main(int argc, char *argv[])
     BN_free(e);
 
     BN_free(total);
-    BN_free(fi1);
-    BN_free(fi2);
+    BN_free(eu1);
+    BN_free(eu2);
 
     return 0;
 }

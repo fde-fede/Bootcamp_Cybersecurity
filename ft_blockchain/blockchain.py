@@ -34,6 +34,7 @@ def mine():
     block = blockchain.new_block(proof, previous_hash)
     response = {
         'message': "New Block Forged",
+        'timestamp': block['timestamp'],
         'index': block['index'],
         'transactions': block['transactions'],
         'proof': block['proof'],

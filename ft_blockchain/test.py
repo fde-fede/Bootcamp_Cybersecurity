@@ -1,34 +1,39 @@
 import hashlib
 import json
-import requests
+from flask import Flask, jsonify, request
+from uuid import uuid4
 from time import time
-from urllib.parse import urlparse
-import random
+from test_class import Blockchain
 
-class Blockchain(object):
-    def __init__(self):
-        self.chain = []
-        self.nodes = set()
-        self.transactions = []
-        self.end_hash = 42
+app = Flask(__name__)
 
-        self.new_block(previous_hash=1)
-    
-    def new_block(self, previous_hash=None):
-        block = {
-            'index': len(self.chain) + 1,
-            'timestamp': time(),
-            'transactions': self.transactions,
-            'previous_hash': previous_hash or self.hash(self.chain[-1]),
-        }
-        self.chain.append(block)
-        self.transactions = []
-        return block
-    
-    def new_transaction(self, sender, recipient, amount):
-        self.transactions.append({
-            'sender': sender,
-            'recipient': recipient,
-            'amount': amount,
-        })
-        return self.last_block['index'] + 1
+node_identifier = str(uuid4()).replace('-', '')
+
+blockchain = Blockchain()
+
+@app.route('/transactions/new', methods=['POST'])
+def new_transaction():
+    values = request.get_json()
+    if not all(item in values for item in ['sender', 'recipient', 'amount']):
+        return 'Missing values', 400
+    index = blockchain.new_transaction(values['sender'], values['recipient'], values['amount'])
+    response = {'message': f'Transaction will be added to Block {index}'}
+    return jsonify(response), 201
+
+@app.route('/mine', methods=['GET'])
+def mine():
+    last_block = blockchain.last_block
+    blockchain.new_transaction(
+        sender="0",
+        recipient=
+        amount=42,
+    )
+    previous_hash = blockchain.hash(last_block)
+    block = blockchain.new_block(prrof, previous_hash)
+    response = {
+        'message': "New Block Forged",
+        'index': block['index'],
+        'transactions': block['transactions'],
+        'previous_hash': block['previous_hash']
+    }
+    return jsonify(response), 200

@@ -12,6 +12,5 @@ int main(int argc, char **argv)
     strcpy(buffer, argv[1]); 
         // strcpy function doesn't control the string size, so we are 
         // going to use that as the vulnerability to cause the overflow
-
     return 0;
 }

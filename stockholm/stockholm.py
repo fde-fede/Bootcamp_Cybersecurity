@@ -151,12 +151,17 @@ if __name__ == '__main__':
         print("Version:", tool_ver)
 
     elif arguments.r:
-        if os.path.exists("key.key"):
-            desinfect(infection_path)
+        if (arguments.r == "key.key"):
+            if os.path.exists("key.key"):
+                desinfect(infection_path)
         
+            else:
+                if not arguments.s:
+                    print("Fatal Error: 'key.key' file not found")
         else:
             if not arguments.s:
-                print("Fatal Error: 'key.key' file not found")
+                print("No key found")
+                exit(1)
     
     else:
         if os.path.exists(infection_path):

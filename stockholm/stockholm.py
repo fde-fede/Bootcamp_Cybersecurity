@@ -20,6 +20,10 @@ def parse_arguments():
     )
 
     arguments.add_argument(
+        "-h",
+        help="Shows help page to use the program"
+        )
+    arguments.add_argument(
         "-r",
         metavar="key",
         help="The key to use to decrypt files",
@@ -53,7 +57,7 @@ def validate_file(elem, mode):
 
 def content(path):
     if os.path.isdir(path):
-        files = os.listdit(path)
+        files = os.listdir(path)
         if len(files) < 0:
             list = []
             for file in files:
@@ -124,7 +128,19 @@ def desinfect(path):
             if path:
                 if not os.path.exists(path):
                     os.makedirs(path)
-                os.rename(file, path + "/")
+                os.rename(file, path + "/" + name[:-3])
+            else:
+                os.rename(file, file[:-3])
+            ret += 1
+        except Exception:
+            if not arguments.s:
+                print("Error, couldn't decrypt file '{}'".format(name))
+    if not arguments.s:
+        print("\nDecrypted files:")
+        for f in sorted(files):
+            print("\t{}".format(f))
+        print("{0}/{1} decrypted files".format(ret, len(files)))
+    return len(files)
 
 if __name__ == '__main__':
 
@@ -133,9 +149,19 @@ if __name__ == '__main__':
     if arguments.v:
         print("Version:", tool_ver)
 
+    elif arguments.h:
+        print("HELP: Stockholm is a program that encrypts some type of files in a directory, and creates a password to decrypt them")
+        print("Usage:")
+        print("stockholm -r <key.key> | launch reversing mode, and adds password to decrypt the files.")
+        print("stockholm -s | launch silent mode (no information in console).")
+        print("stockholm -v | shows the current version of the program.")
+        print("stockholm -h | shows this help.")
+        print("stockholm | starts encrypting the files inside the infection path, and generates a password.")
+        exit()
+
     elif arguments.r:
         if os.path.exists("key.key"):
-            free(file)
+            desinfect(infection_path)
         
         else:
             if not arguments.s:

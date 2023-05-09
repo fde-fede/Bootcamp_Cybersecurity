@@ -1,59 +1,71 @@
-#!/usr/bin/env python3
-import os
-import sys
-import time
-import hashlib
-import psutil
-import logging
+import sys, os
 
-LOG_FILE = "/var/log/irondome/irondome.log"
-MAX_MEMORY_USAGE = 100 * 1024 * 1024 # 100 MB
-logging.basicConfig(filename=LOG_FILE, level=logging.INFO)
 
-def calculate_file_entropy(file_path):
-    hash_md5 = hashlib.md5()
-    with open(file_path, "rb") as f:
-        for chunk in iter(lambda: f.read(4096), b""):
-            hash_md5.update(chunk)
-    return hash_md5.digest()
+class args:
+    program = sys.argv[0]
+    logfile = '/var/log/irondome/irondome.log'
+    basepath = os.path.dirname(os.path.abspath(sys.argv[0]))
+    
+    init_integrity = False
 
-def monitor_critical_zone(path, extensions):
-    for root, dirs, files in os.walk(path):
-        for file in files:
-            file_path = os.path.join(root, file)
-            if extensions:
-                if not os.path.splitext(file_path)[1] in extensions:
-                    continue
-            try:
-                with open(file_path, "rb") as f:
-                    f.read()
-            except Exception as e:
-                logging.error("Detected disk read abuse in %s: %s" % (file_path, e))
-            try:
-                calculate_file_entropy(file_path)
-            except Exception as e:
-                logging.error("Detected change in entropy in %s: %s" % (file_path, e))
-        memory_usage = psutil.Process(os.getpid()).memory_info().rss
-        if memory_usage > MAX_MEMORY_USAGE:
-            logging.error("Memory usage exceded {} bytes".format(MAX_MEMORY_USAGE))
+    watchpath = None
+    extensions = []
+    maxmemory = 100
 
-if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print("Ussage: irondome.py <path_to_defend> <extensions of files to defend>")
-        exit()
-    path = sys.argv[1]
-    if len(sys.argv) > 2:
-        extensions = set(sys.argv[2:])
-    else:
-        extensions = None
-    if os.geteuid() == 0:
-        print("Irondome is running as root. Defending {0}".format(path))
-    else:
-        print("Error, Irondome must be executed as root")
-        sys.exit(1)
-    if not os.access(path, os.R_OK):
-        print("Couldn't read {}".format(path))
-        exit(1)
-    while True:
-        monitor_critical_zone(path, extensions)
-        time.sleep(60)
+    events = [
+        'modify',
+        'attrib',
+        'create',
+        'delete',
+        'delete self',
+        'move from',
+        'move to'
+    ]
+
+def parse_arguments():
+    options = [ '-event', '-logfile', '-init-integrity', '-help' ]
+    options = sys.argv[1:]
+    logger = Logger()
+    events = []
+    if len(options) <= 0:
+        logger.halt_with_doc('', __doc__.format(program=args.program,logfile=args.logfile))
+    
+    while len(options) > 0:
+        data = options.pop(0)
+        if data in ['-events','-logfile']:
+            value = options.pop(0)
+            if data == '-events': events = value.split(',')
+            if data == '-logfile': args.logfile = value
+        
+        elif data == '-init-integrity':
+            args.init_integrity = True
+        elif data == '-help':
+            logger.halt_with_doc('', __doc__.format(program=args.program,logfile=args.logfile))
+        
+        else:
+            if data:
+                args.watchpath = [os.path.abspath(x.rstrip()) for x in data.split(',')]
+            if len(options) > 0:
+                args.extensions = [ x for x in options ]
+                options.clear()
+            
+    if not args.watchpath:
+        logger.halt('ERROR: set directory to monitoring')
+    
+    if len(args.watchpath) > 0:
+        for path in args.watchpath:
+            if not os.path.exists(path):
+                logger.log((-2, f'ERROR: {path} not found'))
+    for event in events:
+        if event not in args.events:
+            logger.halt(f'ERROR: {event} not recognized')
+    #endfor
+
+        if len(events) > 0:
+            args.events = events
+#parse_arguments
+
+def main():
+    parse_arguments()
+    logger = Logger()
+    logger.debug(f'args {args.__dict__}')

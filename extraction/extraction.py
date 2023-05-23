@@ -2,10 +2,13 @@ import os
 import time
 from datetime import datetime
 import win32file
-import win32api
+from struct import pack, unpack
 
 # Default time range to search
 DEFAULT_RANGE = 24 * 3600  # 1 day in seconds
+
+# Global variables
+time_range = 0
 
 # Get epoch timestamp from date and time strings
 def get_timestamp(date_str, time_str):
@@ -95,8 +98,16 @@ def get_file_clusters(filename):
 
 
 # Search disk and display recoverable files
-time_range = 0  # Placeholder value, will be updated later
-start_path = input("Enter the directory path to search from: ")
+def search_disk(start_path):
+    recovered_files = []
+    for dirpath, _, filenames in os.walk(start_path):
+        for filename in filenames:
+            filepath = os.path.join(dirpath, filename)
+            mtime = os.path.getmtime(filepath)  # Get last modified time of file
+            if check_recoverable(filepath, mtime):
+                print(filepath)  # Display recoverable file
+                recovered_files.append(filepath)
+    return recovered_files
 
 # Get user time range input
 def get_time_range_input():
@@ -110,15 +121,6 @@ def get_time_range_input():
     time_str = input('End time (HH:MM:SS): ')
     end = get_timestamp(date_str, time_str)
     return end - start
-
-time_range = get_time_range_input()  # Get time range from user input
-
-for dirpath, _, filenames in os.walk(start_path):
-    for filename in filenames:
-        filepath = os.path.join(dirpath, filename)
-        mtime = os.path.getmtime(filepath)  # Get last modified time of file
-        if check_recoverable(filepath, mtime):
-            print(filepath)  # Display recoverable file
 
 # Get user input for search path
 def get_search_path():
@@ -146,30 +148,28 @@ def select_files_to_recover(recovered_files):
                     selected_files.append(recovered_files[file_index])
                     print(f'{recovered_files[file_index]} added to recovery list.')
                 else:
-                    print('Invalid file number. Try again.')
+                    print('Invalid file number.')
             except ValueError:
-                print('Invalid input. Try again.')
+                print('Invalid input.')
         return selected_files
     else:
         return []
 
-# Main program execution
-time_range = get_time_range_input()  # Get time range from user input
-search_path = get_search_path()  # Get search path from user input
-recovered_files = search_disk(search_path)  # Search disk for files within the time range
+def main():
+    global time_range
+    time_range = get_time_range_input()
+    search_path = get_search_path()
+    if search_path is None:
+        print('Searching the whole disk...')
+        search_path = 'C:'
+    else:
+        print(f'Searching directory: {search_path}')
+    recovered_files = search_disk(search_path)
+    selected_files = select_files_to_recover(recovered_files)
+    print('Files selected for recovery:')
+    for filename in selected_files:
+        print(filename)
 
-if len(recovered_files) > 0:
-    print('Recovered files:')
-    for filename in recovered_files:
-        mtime = get_file_mtime(filename)  # Get last modified time of file
-        if check_recoverable(filename, mtime):
-            print(filename)  # Display recoverable file
-
-    selected_files = select_files_to_recover(recovered_files)  # Get user selection for file recovery
-
-    if len(selected_files) > 0:
-        print('Selected files for recovery:')
-        for filename in selected_files:
-            print(filename)
-else:
-    print('No recovered files found within the specified time range.')
+# Start the program
+if __name__ == '__main__':
+    main()

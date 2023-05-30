@@ -19,3 +19,4 @@
 - Iron_dome <a href="https://github.com/JaeSeoKim/badge42"><img src="https://badge42.vercel.app/api/v2/cldx5fgmg00060fl7ypfhg7pq/project/3087020" alt="fde-fede's 42 iron_dome Score" /></a>
 - Recovery <a href="https://github.com/JaeSeoKim/badge42"><img src="https://badge42.vercel.app/api/v2/cldx5fgmg00060fl7ypfhg7pq/project/3087022" alt="fde-fede's 42 recovery Score" /></a>
 - Inquisitor <a href="https://github.com/JaeSeoKim/badge42"><img src="https://badge42.vercel.app/api/v2/cldx5fgmg00060fl7ypfhg7pq/project/3073307" alt="fde-fede's 42 inquisitor Score" /></a>
+- Extraction <a href="https://github.com/JaeSeoKim/badge42"><img src="https://badge42.vercel.app/api/v2/cldx5fgmg00060fl7ypfhg7pq/project/3100571" alt="fde-fede's 42 extraction Score" /></a>

